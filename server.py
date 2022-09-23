@@ -24,8 +24,8 @@ class ThreadPool(threading.Thread):
     def __init__(self, _log_name):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-        self.start()
         self.log_name = _log_name
+        self.start()
 
     def run(self):
         for i in range(MAX_CONNECTION):
