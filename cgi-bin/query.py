@@ -1,4 +1,3 @@
-# import pymysql
 import sqlite3
 import sys
 
@@ -29,7 +28,16 @@ else:
 cursor.execute(sql)
 
 data = cursor.fetchall()
-res = '''<!DOCTYPE html>
+
+student_data = ''
+for student in data:
+    temp = "<tr>"
+    temp += "<th>" + str(student[0]) + "</th>"
+    temp += "<th>" + student[1] + "</th>"
+    temp += "<th>" + student[2] + "</th>"
+    temp += "</tr>\n"
+    student_data += temp
+res = f'''<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -44,20 +52,10 @@ res = '''<!DOCTYPE html>
             <th> NAME </th>
             <th> CLASS </th>
         </tr>
-        $data
+        {student_data}
     </table>
 
 </body>
 
 </html>'''
-
-student_data = ''
-for student in data:
-    temp = "<tr>"
-    temp += "<th>" + str(student[0]) + "</th>"
-    temp += "<th>" + student[1] + "</th>"
-    temp += "<th>" + student[2] + "</th>"
-    temp += "</tr>\n"
-    student_data += temp
-res = res.replace("$data", student_data)
 print(res)
