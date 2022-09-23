@@ -29,18 +29,35 @@ else:
 cursor.execute(sql)
 
 data = cursor.fetchall()
-res = ""
-with open("cgi-bin/query.html", "r", encoding="utf-8") as f:
-    for line in f:
-        res += line
-    student_data = ''
-    for student in data:
-        temp = "<tr>"
-        temp += "<th>" + str(student[0]) + "</th>"
-        temp += "<th>" + student[1] + "</th>"
-        temp += "<th>" + student[2] + "</th>"
-        temp += "</tr>\n"
-        student_data += temp
-    res = res.replace("$data", student_data)
+res = '''<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Student Data</title>
+</head>
+<body>
 
+    <table border="1">
+        <caption>Student Data</caption>
+        <tr>
+            <th> ID </th>
+            <th> NAME </th>
+            <th> CLASS </th>
+        </tr>
+        $data
+    </table>
+
+</body>
+
+</html>'''
+
+student_data = ''
+for student in data:
+    temp = "<tr>"
+    temp += "<th>" + str(student[0]) + "</th>"
+    temp += "<th>" + student[1] + "</th>"
+    temp += "<th>" + student[2] + "</th>"
+    temp += "</tr>\n"
+    student_data += temp
+res = res.replace("$data", student_data)
 print(res)

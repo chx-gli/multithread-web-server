@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import socket
-from worker import tasks, working_thread, worker,sema
+from worker import tasks, working_thread, worker, sema
 import threading
 import time
 
@@ -33,13 +33,14 @@ class ThreadPool(threading.Thread):
         while True:
             for i in range(10):
                 # print(len(working_thread), tasks.empty())
-                if (len(working_thread) == MAX_CONNECTION
-                        and MAX_CONNECTION != 0 and (not tasks.empty())):
+                if (len(working_thread) == MAX_CONNECTION and
+                        MAX_CONNECTION != 0 and
+                        (not tasks.empty())):
                     print("shutdown")
                     working_thread[0].restart()
                 # time.sleep(0.1)
             sema.acquire(timeout=1)
-            
+
             working_thread_cnt = len(working_thread)
             print("now working thread: " + str(working_thread_cnt) +
                   " ; free thread: " +
@@ -51,15 +52,15 @@ class ThreadPool(threading.Thread):
 now_time = time.localtime()
 log_name = "log/" + str(now_time.tm_year) + "-" + str(
     now_time.tm_mon) + "-" + str(now_time.tm_mday) + "-" + str(
-        now_time.tm_hour) + "-" + str(now_time.tm_min) + "-" + str(
-            now_time.tm_sec) + ".txt"
+    now_time.tm_hour) + "-" + str(now_time.tm_min) + "-" + str(
+    now_time.tm_sec) + ".txt"
 
 ThreadPool(log_name)
 
 while True:
     try:
         client, addr = server_socket.accept()
-        print("recv: ",client.getpeername(),client.getsockname())
+        print("recv: ", client.getpeername(), client.getsockname())
         tasks.put(client)
         # ！！！！ qsize不是阻塞的 当多个请求同时到达qsize不是当前的值
         # if (working_thread.qsize() == MAX_CONNECTION):

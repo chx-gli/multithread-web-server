@@ -6,11 +6,21 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/pad.css">
 </head>
 <body>
-<form method="post" action="/cgi-bin/cal.py">
-    First num: <input type="text" name="a"><br> Last num: <input type="text" name="b">
-    <input type="submit" value="Cal"/>
+
+<div class="container">
+    <form class="pad" method="post" action="/cgi-bin/cal.py">
+    <div class="input-group">
+        <span class="input-group-text">Expression</span>
+        <input class="form-control" type="text" name="expr">
+        <input class="input-group-text btn btn-primary" type="submit" value="Calculate!"/>
+    </div>
 </form>
+</div>
+
+<script src="js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
