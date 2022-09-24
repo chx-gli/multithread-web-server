@@ -1,12 +1,49 @@
 import threading
-from queue import Queue
 import subprocess
 import os
 import time
+from semas import full,tasks_mux, tasks, MAX_CONNECTION
 
-sema = threading.Semaphore()
-tasks = Queue()
-working_thread = list()
+mux = threading.Semaphore(1) #对working_thread互斥访问
+working_thread = list()  # 活跃进程列表
+
+class ThreadPool(threading.Thread):
+    def __init__(self, _log_name):
+        threading.Thread.__init__(self)
+        self.setDaemon(True)
+        self.log_name = _log_name
+        self.start()
+
+    #检查是否有空闲线程，没有则释放
+    def check(self):
+        mux.acquire()
+        working_thread_cnt = len(working_thread)
+        
+        if working_thread_cnt == MAX_CONNECTION:
+            thread = working_thread.pop(0) #释放最早的
+            thread.restart()
+        
+        print("now working thread: " + str(working_thread_cnt) +
+        " ; free thread: " +
+        str(MAX_CONNECTION - working_thread_cnt) +
+        " ; now waiting request: " + str(tasks.qsize()))
+
+        mux.release()
+
+    def run(self):
+        for i in range(MAX_CONNECTION):
+            worker(self.log_name)
+        # while True:
+        #     for i in range(10):
+        #     if (len(working_thread) == MAX_CONNECTION and (not tasks.empty())):
+        #         print("shutdown")
+        #         working_thread[0].restart()
+        #     sema.acquire(timeout=1)
+        #     time.sleep(1)
+        #     working_thread_cnt = len(working_thread)
+        #     tasks_mux.acquire()
+
+        #     tasks_mux.release()
 
 
 class worker(threading.Thread):
@@ -121,10 +158,16 @@ class worker(threading.Thread):
             f.write(content)
 
     def run(self):
-        while True:
+        while(True):
+            full.acquire()#等待连接
+
+            tasks_mux.acquire()
             self.socket = tasks.get()
+            tasks_mux.release()
+
+            mux.acquire()
             working_thread.append(self)
-            sema.release()
+            mux.release()
 
             message = self.socket.recv(8000).decode("utf-8")
             message = message.splitlines()
@@ -157,5 +200,6 @@ class worker(threading.Thread):
             except Exception as e:
                 print("reason:", e)  # read a closed file
             self.restart()
+            mux.acquire()
             working_thread.remove(self)
-            sema.release()
+            mux.release()
