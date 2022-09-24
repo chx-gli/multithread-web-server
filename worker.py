@@ -4,10 +4,9 @@ import subprocess
 import os
 import time
 
+sema = threading.Semaphore()
 tasks = Queue()
 working_thread = list()
-
-sema=threading.Semaphore()
 
 
 class worker(threading.Thread):
@@ -42,7 +41,8 @@ class worker(threading.Thread):
         if (os.path.isfile(file_name)):
             file_suffix = file_name.split('.')
             file_suffix = file_suffix[-1].encode()
-            content = b"HTTP/1.1 200 OK\r\nContent-Type: text/" + file_suffix + b";charset=utf-8\r\n"
+            content = b"HTTP/1.1 200 OK\r\nContent-Type: text/" + \
+                file_suffix + b";charset=utf-8\r\n"
 
             self.status_code = 200
         else:
@@ -65,7 +65,6 @@ class worker(threading.Thread):
         self.write_log(file_size)
 
     def post(self, file_name, args):
-        ## TODO 计算器可能有写小 bug ，在手机访问的时候传入的参数不对，到时候修一修
         command = 'python ' + file_name + ' "' + args + '" "' + self.socket.getsockname(
         )[0] + '" "' + str(self.socket.getsockname()[1]) + '"'
         self.proc = subprocess.Popen(command,
@@ -75,7 +74,7 @@ class worker(threading.Thread):
 
         file_size = 0
 
-        if (self.proc.poll() == 2):  ## 文件不存在时返回值为2
+        if (self.proc.poll() == 2):  # 文件不存在时返回值为2
             content = b"HTTP/1.1 403 Forbidden\r\nContent-Type: text/html;charset=utf-8\r\n"
             page = b''
             self.file_handle = open("403.html", "rb")
@@ -144,19 +143,19 @@ class worker(threading.Thread):
             if (key_mes[1] != "/"):
                 file_name = key_mes[1][1:]
 
-            working_thread.append(self)
+            # working_thread.append(self)
             try:
                 if (key_mes[0] == 'GET'):
                     self.get(file_name)
                 elif (key_mes[0] == 'POST'):
                     self.post(file_name, message[-1])
-                elif (key_mes[0] == 'HEAD'): # 轻量版get
+                elif (key_mes[0] == 'HEAD'):  # 轻量版get
                     self.get(file_name, True)
                 else:
                     content = b"HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n"
                     self.socket.sendall(content)
             except Exception as e:
-                print("reason:", e) # read a closed file
+                print("reason:", e)  # read a closed file
             self.restart()
             working_thread.remove(self)
             sema.release()
