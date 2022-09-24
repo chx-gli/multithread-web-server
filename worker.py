@@ -2,16 +2,17 @@ import threading
 import subprocess
 import os
 import time
-from semas import full,tasks_mux, tasks, MAX_CONNECTION
+from semas import full,tasks_mux, tasks
 
 mux = threading.Semaphore(1) #对working_thread互斥访问
 working_thread = list()  # 活跃进程列表
 
 class ThreadPool(threading.Thread):
-    def __init__(self, _log_name):
+    def __init__(self, _log_name,MAX_CONNECTION):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.log_name = _log_name
+        self.MAX_CONNECTION = MAX_CONNECTION
         self.start()
 
     #检查是否有空闲线程，没有则释放
@@ -19,19 +20,19 @@ class ThreadPool(threading.Thread):
         mux.acquire()
         working_thread_cnt = len(working_thread)
         
-        if working_thread_cnt == MAX_CONNECTION:
+        if working_thread_cnt == self.MAX_CONNECTION:
             thread = working_thread.pop(0) #释放最早的
             thread.restart()
         
         print("now working thread: " + str(working_thread_cnt) +
         " ; free thread: " +
-        str(MAX_CONNECTION - working_thread_cnt) +
+        str(self.MAX_CONNECTION - working_thread_cnt) +
         " ; now waiting request: " + str(tasks.qsize()))
 
         mux.release()
 
     def run(self):
-        for i in range(MAX_CONNECTION):
+        for i in range(self.MAX_CONNECTION):
             worker(self.log_name)
         # while True:
         #     for i in range(10):
@@ -48,16 +49,19 @@ class ThreadPool(threading.Thread):
 
 class worker(threading.Thread):
     def __init__(self, log_name):
+        self.log_name = log_name
+        self.msg = None
+        self.status_code = -1
+
         self.file_handle = None
         self.socket = None
         self.proc = None
+
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.start()
 
-        self.log_name = log_name
-        self.msg = None
-        self.status_code = -1
+
 
     def restart(self):
         if (self.file_handle != None):
@@ -186,7 +190,6 @@ class worker(threading.Thread):
             if (key_mes[1] != "/"):
                 file_name = key_mes[1][1:]
 
-            # working_thread.append(self)
             try:
                 if (key_mes[0] == 'GET'):
                     self.get(file_name)

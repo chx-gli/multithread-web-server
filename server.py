@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 import socket
-# from concurrent.futures import ThreadPoolExecutor
-# from task import task
+import sys
 import time
 from semas import full,tasks_mux,tasks
 from worker import ThreadPool
 
 
+MAX_CONNECTION = 10
 PORT = 9000
+
+#命令行输入最大连接数
+if len(sys.argv) > 1:
+    if eval(sys.argv[1]) > 0:
+        MAX_CONNECTION = eval(sys.argv[1])
 
 # socket listen
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,7 +34,7 @@ log_name = "log/" + str(cur_time.tm_year) + "-" + str(
         cur_time.tm_hour) + "-" + str(cur_time.tm_min) + "-" + str(
             cur_time.tm_sec) + ".txt"
 
-tp = ThreadPool(log_name)
+tp = ThreadPool(log_name,MAX_CONNECTION)
 
 #监听循环
 while True:
