@@ -7,6 +7,7 @@ from semas import full,tasks_mux, tasks
 mux = threading.Semaphore(1) #对working_thread互斥访问
 working_thread = list()  # 活跃进程列表
 
+<<<<<<< HEAD
 class ThreadPool(threading.Thread):
     def __init__(self, _log_name,MAX_CONNECTION):
         threading.Thread.__init__(self)
@@ -45,6 +46,9 @@ class ThreadPool(threading.Thread):
         #     tasks_mux.acquire()
 
         #     tasks_mux.release()
+=======
+sema = threading.Semaphore()
+>>>>>>> 65e97fddb6e1896c97b301630d89cdf620c3b80b
 
 
 class worker(threading.Thread):
@@ -141,10 +145,10 @@ class worker(threading.Thread):
         content = content + "--"
         content = content + "[" + str(time.localtime().tm_year) + "-" + str(
             time.localtime().tm_mon) + "-" + str(
-                time.localtime().tm_mday) + "-" + str(
-                    time.localtime().tm_hour) + "-" + str(
-                        time.localtime().tm_min) + "-" + str(
-                            time.localtime().tm_sec) + "]"
+            time.localtime().tm_mday) + "-" + str(
+            time.localtime().tm_hour) + "-" + str(
+            time.localtime().tm_min) + "-" + str(
+            time.localtime().tm_sec) + "]"
         content = content + " " + self.msg[0].split("/")[0].replace(" ",
                                                                     "") + " "
         content = content + " " + self.msg[0].split(" ")[1].replace(" ",
