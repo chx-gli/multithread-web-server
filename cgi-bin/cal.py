@@ -21,7 +21,7 @@ res = f'''
     <div class="input-group">
         <span class="input-group-text">Result</span>
         <input class="form-control" type="text" name="expr" value="{calculation_result}">
-        <a class="input-group-text btn btn-primary">Back!</a>
+        <a class="input-group-text btn btn-primary" onclick="window.history.go(-1);">Back!</a>
     </div>
 </div>
 </div>

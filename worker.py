@@ -1,93 +1,80 @@
+import socket
 import threading
 import subprocess
 import os
 import time
-from semas import full,tasks_mux, tasks
+from semas import full, tasks_mux, tasks
 
-mux = threading.Semaphore(1) #对working_thread互斥访问
-working_thread = list()  # 活跃进程列表
+mux = threading.Semaphore(1)  # 对working_thread互斥访问
+working_thread = []  # 活跃进程列表
 
-<<<<<<< HEAD
+
 class ThreadPool(threading.Thread):
-    def __init__(self, _log_name,MAX_CONNECTION):
-        threading.Thread.__init__(self)
-        self.setDaemon(True)
+    def __init__(self, _log_name, max_connection):
+        super().__init__()
+        self.daemon = True
         self.log_name = _log_name
-        self.MAX_CONNECTION = MAX_CONNECTION
-        self.start()
+        self.max_connection = max_connection
 
-    #检查是否有空闲线程，没有则释放
+    # 检查是否有空闲线程，没有则释放
     def check(self):
         mux.acquire()
         working_thread_cnt = len(working_thread)
-        
-        if working_thread_cnt == self.MAX_CONNECTION:
-            thread = working_thread.pop(0) #释放最早的
+
+        if working_thread_cnt == self.max_connection:
+            thread = working_thread.pop(0)  # 释放最早的
             thread.restart()
-        
+
         print("now working thread: " + str(working_thread_cnt) +
-        " ; free thread: " +
-        str(self.MAX_CONNECTION - working_thread_cnt) +
-        " ; now waiting request: " + str(tasks.qsize()))
+              " ; free thread: " +
+              str(self.max_connection - working_thread_cnt) +
+              " ; now waiting request: " + str(tasks.qsize()))
 
         mux.release()
 
     def run(self):
-        for i in range(self.MAX_CONNECTION):
-            worker(self.log_name)
-        # while True:
-        #     for i in range(10):
-        #     if (len(working_thread) == MAX_CONNECTION and (not tasks.empty())):
-        #         print("shutdown")
-        #         working_thread[0].restart()
-        #     sema.acquire(timeout=1)
-        #     time.sleep(1)
-        #     working_thread_cnt = len(working_thread)
-        #     tasks_mux.acquire()
+        for i in range(self.max_connection):
+            Worker(self.log_name).start()
 
-        #     tasks_mux.release()
-=======
+
 sema = threading.Semaphore()
->>>>>>> 65e97fddb6e1896c97b301630d89cdf620c3b80b
 
 
-class worker(threading.Thread):
-    def __init__(self, log_name):
-        self.log_name = log_name
+class Worker(threading.Thread):
+    def __init__(self, _log_name):
+        super().__init__()
+
+        self.log_name = _log_name
         self.msg = None
         self.status_code = -1
 
         self.file_handle = None
-        self.socket = None
+        self.socket: socket.socket | None = None
         self.proc = None
 
-        threading.Thread.__init__(self)
-        self.setDaemon(True)
-        self.start()
-
-
+        self.daemon = True
 
     def restart(self):
-        if (self.file_handle != None):
+        if self.file_handle is not None:
             self.file_handle.close()
             self.file_handle = None
-        if (self.socket != None):
+        if self.socket is not None:
             try:
                 self.socket.shutdown(2)
                 self.socket.close()
             except Exception as e:
                 print("socket error:", e)
             self.socket = None
-        if (self.proc != None and self.proc.poll() != None):
+        if self.proc is not None and self.proc.poll() is not None:
             self.proc.kill()
             self.proc = None
 
     def get(self, file_name, is_head=False):
-        if (os.path.isfile(file_name)):
+        if os.path.isfile(file_name):
             file_suffix = file_name.split('.')
             file_suffix = file_suffix[-1].encode()
             content = b"HTTP/1.1 200 OK\r\nContent-Type: text/" + \
-                file_suffix + b";charset=utf-8\r\n"
+                      file_suffix + b";charset=utf-8\r\n"
 
             self.status_code = 200
         else:
@@ -119,7 +106,7 @@ class worker(threading.Thread):
 
         file_size = 0
 
-        if (self.proc.poll() == 2):  # 文件不存在时返回值为2
+        if self.proc.poll() == 2:  # 文件不存在时返回值为2
             content = b"HTTP/1.1 403 Forbidden\r\nContent-Type: text/html;charset=utf-8\r\n"
             page = b''
             self.file_handle = open("403.html", "rb")
@@ -166,8 +153,8 @@ class worker(threading.Thread):
             f.write(content)
 
     def run(self):
-        while(True):
-            full.acquire()#等待连接
+        while (True):
+            full.acquire()  # 等待连接
 
             tasks_mux.acquire()
             self.socket = tasks.get()
@@ -182,28 +169,29 @@ class worker(threading.Thread):
 
             self.msg = message
 
-            if (message):
+            if message:
                 key_mes = message[0].split()
             else:
                 self.restart()
                 continue
-            if (len(key_mes) <= 1):
+            if len(key_mes) <= 1:
                 self.restart()
                 continue
             file_name = "index.html"
-            if (key_mes[1] != "/"):
+            if key_mes[1] != "/":
                 file_name = key_mes[1][1:]
 
             try:
-                if (key_mes[0] == 'GET'):
-                    self.get(file_name)
-                elif (key_mes[0] == 'POST'):
-                    self.post(file_name, message[-1])
-                elif (key_mes[0] == 'HEAD'):  # 轻量版get
-                    self.get(file_name, True)
-                else:
-                    content = b"HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n"
-                    self.socket.sendall(content)
+                match key_mes[0]:
+                    case 'GET':
+                        self.get(file_name)
+                    case 'POST':
+                        self.post(file_name, message[-1])
+                    case 'HEAD':
+                        self.get(file_name, True)
+                    case _:
+                        content = b'HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n'
+                        self.socket.sendall(content)
             except Exception as e:
                 print("reason:", e)  # read a closed file
             self.restart()
