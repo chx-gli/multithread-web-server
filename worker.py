@@ -5,6 +5,9 @@ import os
 import time
 from semas import full, tasks_mux, tasks
 
+mux = threading.Semaphore(1)  # 对working_thread互斥访问
+working_thread = []  # 活跃进程列表
+
 
 class ThreadPool(threading.Thread):
     def __init__(self, _log_name, max_connection):
