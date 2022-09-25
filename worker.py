@@ -5,9 +5,6 @@ import os
 import time
 from semas import full, tasks_mux, tasks
 
-mux = threading.Semaphore(1)  # 对working_thread互斥访问
-working_thread = []  # 活跃进程列表
-
 
 class ThreadPool(threading.Thread):
     def __init__(self, _log_name, max_connection):
@@ -15,14 +12,16 @@ class ThreadPool(threading.Thread):
         self.daemon = True
         self.log_name = _log_name
         self.max_connection = max_connection
+        self.mux = threading.Semaphore(1)  # 对working_thread互斥访问
+        self.working_thread = []  # 活跃进程列表
 
     # 检查是否有空闲线程，没有则释放
     def check(self):
-        mux.acquire()
-        working_thread_cnt = len(working_thread)
+        self.mux.acquire()
+        working_thread_cnt = len(self.working_thread)
 
         if working_thread_cnt == self.max_connection:
-            thread = working_thread.pop(0)  # 释放最早的
+            thread = self.working_thread.pop(0)  # 释放最早的
             thread.end()
             thread.start()
 
@@ -31,18 +30,20 @@ class ThreadPool(threading.Thread):
               str(self.max_connection - working_thread_cnt) +
               " ; now waiting request: " + str(tasks.qsize()))
 
-        mux.release()
+        self.mux.release()
 
     def run(self):
         for i in range(self.max_connection):
-            Worker(self.log_name).start()
+            Worker(self.log_name, self.mux, self.working_thread).start()
 
 
 class Worker(threading.Thread):
-    def __init__(self, _log_name):
+    def __init__(self, _log_name, mux, working_thread):
         super().__init__()
 
         self.log_name = _log_name
+        self.mux = mux  # 对working_thread互斥访问
+        self.working_thread = working_thread  # 所属活跃进程列表
         self.msg = None
         self.status_code = -1
 
@@ -182,9 +183,9 @@ class Worker(threading.Thread):
             self.socket = tasks.get()
             tasks_mux.release()
 
-            mux.acquire()
-            working_thread.append(self)
-            mux.release()
+            self.mux.acquire()
+            self.working_thread.append(self)
+            self.mux.release()
 
             if self.stopped:
                 break
@@ -232,6 +233,6 @@ class Worker(threading.Thread):
                 break
             else:  # 继续等待连接
                 self.release()
-                mux.acquire()
-                working_thread.remove(self)
-                mux.release()
+                self.mux.acquire()
+                self.working_thread.remove(self)
+                self.mux.release()
