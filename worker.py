@@ -7,7 +7,6 @@ from semas import full,tasks_mux, tasks
 mux = threading.Semaphore(1) #对working_thread互斥访问
 working_thread = list()  # 活跃进程列表
 
-<<<<<<< HEAD
 class ThreadPool(threading.Thread):
     def __init__(self, _log_name,MAX_CONNECTION):
         threading.Thread.__init__(self)
@@ -46,9 +45,6 @@ class ThreadPool(threading.Thread):
         #     tasks_mux.acquire()
 
         #     tasks_mux.release()
-=======
-sema = threading.Semaphore()
->>>>>>> 65e97fddb6e1896c97b301630d89cdf620c3b80b
 
 
 class worker(threading.Thread):
@@ -112,6 +108,7 @@ class worker(threading.Thread):
     def post(self, file_name, args):
         command = 'python ' + file_name + ' "' + args + '" "' + self.socket.getsockname(
         )[0] + '" "' + str(self.socket.getsockname()[1]) + '"'
+        print(command)
         self.proc = subprocess.Popen(command,
                                      shell=True,
                                      stdout=subprocess.PIPE)
@@ -199,7 +196,7 @@ class worker(threading.Thread):
                     self.get(file_name)
                 elif (key_mes[0] == 'POST'):
                     self.post(file_name, message[-1])
-                elif (key_mes[0] == 'HEAD'):  # 轻量版get
+                elif (key_mes[0] == 'HEAD'):  
                     self.get(file_name, True)
                 else:
                     content = b"HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n"
