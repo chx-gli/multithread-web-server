@@ -23,7 +23,8 @@ class ThreadPool(threading.Thread):
 
         if working_thread_cnt == self.max_connection:
             thread = working_thread.pop(0)  # 释放最早的
-            thread.restart()
+            thread.end()
+            thread.start()
 
         print("now working thread: " + str(working_thread_cnt) +
               " ; free thread: " +
@@ -35,9 +36,6 @@ class ThreadPool(threading.Thread):
     def run(self):
         for i in range(self.max_connection):
             Worker(self.log_name).start()
-
-
-sema = threading.Semaphore()
 
 
 class Worker(threading.Thread):
@@ -52,9 +50,15 @@ class Worker(threading.Thread):
         self.socket: socket.socket | None = None
         self.proc = None
 
+        self.stopped = 0  # 控制线程停止，执行时定期检查stop，为1则退出
         self.daemon = True
 
-    def restart(self):
+    def end(self):  # stop置1并释放资源，强行终止
+        self.stopped = 1
+        self.join()
+        self.release()
+
+    def release(self):  # 释放资源
         if self.file_handle is not None:
             self.file_handle.close()
             self.file_handle = None
@@ -70,6 +74,8 @@ class Worker(threading.Thread):
             self.proc = None
 
     def get(self, file_name, is_head=False):
+        if self.stopped:
+            return
         if os.path.isfile(file_name):
             file_suffix = file_name.split('.')
             file_suffix = file_suffix[-1].encode()
@@ -83,6 +89,9 @@ class Worker(threading.Thread):
 
             self.status_code = 404
         content += b'\r\n'
+
+        if self.stopped:
+            return
         self.socket.sendall(content)
 
         file_size = 0
@@ -97,13 +106,20 @@ class Worker(threading.Thread):
         self.write_log(file_size)
 
     def post(self, file_name, args):
+        if self.stopped:
+            return
         command = 'python ' + file_name + ' "' + args + '" "' + self.socket.getsockname(
         )[0] + '" "' + str(self.socket.getsockname()[1]) + '"'
         print(command)
+        if self.stopped:
+            return
         self.proc = subprocess.Popen(command,
                                      shell=True,
                                      stdout=subprocess.PIPE)
         self.proc.wait()
+
+        if self.stopped:
+            return
 
         file_size = 0
 
@@ -123,6 +139,10 @@ class Worker(threading.Thread):
 
             file_size = os.path.getsize(file_name)
             self.status_code = 200
+
+        if self.stopped:
+            return
+
         self.socket.sendall(content)
 
         self.write_log(file_size)
@@ -154,6 +174,7 @@ class Worker(threading.Thread):
             f.write(content)
 
     def run(self):
+        self.stopped = 0
         while (True):
             full.acquire()  # 等待连接
 
@@ -165,23 +186,34 @@ class Worker(threading.Thread):
             working_thread.append(self)
             mux.release()
 
+            if self.stopped:
+                break
+
             message = self.socket.recv(8000).decode("utf-8")
             message = message.splitlines()
 
             self.msg = message
 
-            if message:
-                key_mes = message[0].split()
+            if self.stopped:
+                break
+            elif self.msg:
+                key_mes = self.msg[0].split()
             else:
-                self.restart()
+                print("error when reading message:msg empty")
                 continue
+
             if len(key_mes) <= 1:
-                self.restart()
+                print("error when reading message:msg empty")
                 continue
+
+            if self.stopped:
+                break
             file_name = "index.html"
             if key_mes[1] != "/":
                 file_name = key_mes[1][1:]
 
+            if self.stopped:
+                break
             try:
                 match key_mes[0]:
                     case 'GET':
@@ -194,8 +226,12 @@ class Worker(threading.Thread):
                         content = b'HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n'
                         self.socket.sendall(content)
             except Exception as e:
-                print("reason:", e)  # read a closed file
-            self.restart()
-            mux.acquire()
-            working_thread.remove(self)
-            mux.release()
+                print("reason:", e)
+
+            if self.stopped:
+                break
+            else:  # 继续等待连接
+                self.release()
+                mux.acquire()
+                working_thread.remove(self)
+                mux.release()
