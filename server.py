@@ -1,3 +1,4 @@
+import os.path
 import socket
 import sys
 
@@ -7,6 +8,9 @@ from worker import ThreadPool
 
 MAX_CONNECTION = 10
 PORT = 9000
+
+if not os.path.isdir('log'):
+    os.mkdir('log')
 
 # 命令行输入最大连接数
 if len(sys.argv) > 1:

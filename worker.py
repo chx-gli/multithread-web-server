@@ -167,16 +167,16 @@ class Worker(threading.Thread):
         for i in self.msg:
             # print(i)
             # print(i.split(" ")[0])
-            if (i.split(" ")[0] == "Referer:"):
+            if i.split(" ")[0] == "Referer:":
                 content = content + i.split(" ")[1].replace(" ", "")
 
-        content = content + "\n"
+        content += "\n"
         with open(self.log_name, "a") as f:
             f.write(content)
 
     def run(self):
         self.stopped = 0
-        while (True):
+        while True:
             full.acquire()  # 等待连接
 
             tasks_mux.acquire()
