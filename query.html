@@ -2,76 +2,83 @@
 <head>
     <title>Query</title>
     <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/pad.css"/>
     <link rel="stylesheet" href="css/query.css"/>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-light">
-  <div class="container-fluid">
-    <a href="index.html" class="navbar-brand">Python-based Multi-threaded Server</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="cal.html">Calculator</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="query.html">Database Query</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="about.html">About</a>
-            </li>
-        </ul>
+    <div class="container-fluid">
+        <a href="index.html" class="navbar-brand">Python-based Multi-threaded Server</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="cal.html">Calculator</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="query.html">Database Query</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="about.html">About</a>
+                </li>
+            </ul>
+        </div>
     </div>
-  </div>
 </nav>
 
 <div class="container">
-    <div class="query-title lead">学生信息查询</div>
+    <div class="pad">
+        <div class="text-center fs-2">学生信息查询</div>
 
-    <form class="query-form" method="post" action="/cgi-bin/query.py">
-        <div class="form-group">
-            <label for="InputID">Student ID</label>
-            <input
-                    type="text"
-                    class="form-control"
-                    id="InputID"
-                    name="id"
-                    aria-describedby="IDHelp"
-                    placeholder="输入学号"
-            />
-            <small class="form-text text-muted"
-            >学号类型：xxxxxxxxxx 10位数字</small
-            >
-        </div>
-        <div class="form-group">
-            <label for="InputGender">Gender</label>
-            <input
-                    type="text"
-                    class="form-control"
-                    id="InputGender"
-                    name="gender"
-                    aria-describedby="gender"
-                    placeholder="输入性别（female/male）"
-            />
-        </div>
-        <div class="form-group">
-            <label for="InputClass">Student Class</label>
-            <input
-                    type="text"
-                    class="form-control"
-                    id="InputClass"
-                    name="class"
-                    aria-describedby="ClassHelp"
-                    placeholder="输入班级"
-            />
-            <small class="form-text text-muted"
-            >班级类型：xxxxxxxx 8位数字</small
-            >
-        </div>
-        <button type="submit" class="btn btn-primary align-items-center">查询</button>
-    </form>
+        <form class="input-ap" method="post" action="/cgi-bin/query.py">
+            <div class="input-group mt-3 query-item">
+                <label class="input-group-text" for="InputID">
+                    Student No.
+                </label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="InputID"
+                        name="id"
+                        aria-describedby="IDHelp"
+                        placeholder="输入学号，10位数字"
+                />
+            </div>
+            <div class="input-group mt-3 query-item">
+                <label class="input-group-text" for="InputGender">
+                    Gender
+                </label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="InputGender"
+                        name="gender"
+                        aria-describedby="gender"
+                        placeholder="输入性别，female或male"
+                />
+            </div>
+            <div class="input-group mt-3 query-item">
+                <label class="input-group-text" for="InputClass">
+                    Student Class
+                </label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="InputClass"
+                        name="class"
+                        aria-describedby="ClassHelp"
+                        placeholder="输入班级，8位数字"
+                />
+            </div>
+            <button
+                    type="submit"
+                    class="btn btn-primary mx-auto d-block mt-3" style="width: 100%"
+            >查询</button>
+        </form>
+    </div>
 </div>
 </body>
 
