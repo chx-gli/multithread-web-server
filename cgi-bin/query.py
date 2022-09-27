@@ -2,8 +2,8 @@ import sqlite3
 import sys
 
 ini = sys.argv[1]
-hostname = sys.argv[2]
-port = sys.argv[3]
+# hostname = sys.argv[2]
+# port = sys.argv[3]
 
 ini = ini.split("&")
 
@@ -22,7 +22,7 @@ if student_id != "":
 if student_gender != "":
     sql += f"and gender = \"{student_gender}\" "
 if student_class != "":
-    sql += f"and class = \"{student_gender}\""
+    sql += f"and class = \"{student_class}\""
 
 sql += ";"
 cursor.execute(sql)
@@ -53,8 +53,8 @@ res = f'''
           <tr>
             <th scope="col">ID</th>
             <th scope="col">NAME</th>
-            <th scope="col">GENDER</th>
             <th scope="col">CLASS</th>
+            <th scope="col">GENDER</th>
           </tr>
         </thead>
         <tbody>

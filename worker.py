@@ -112,10 +112,7 @@ class Worker(threading.Thread):
     def post(self, file_name):
         if self.stopped:
             return
-        command = 'python ' + file_name + ' "' + self.msg[-1] + '" "'\
-            + self.socket.getsockname()[0] + '" "' + \
-            str(self.socket.getsockname()[1]) + '"'
-
+        command = 'python ' + file_name + ' "' + self.msg[-1] + '"'
         print(command)
         if self.stopped:
             return
@@ -129,7 +126,7 @@ class Worker(threading.Thread):
 
         file_size = 0
 
-        if self.proc.poll() == 2:  # 文件不存在时返回值为2
+        if self.proc.poll() == 2:  # 2子进程不存在
             content = b"HTTP/1.1 403 Forbidden\r\nContent-Type: text/html;charset=utf-8\r\n"
             page = b''
             self.file_handle = open("403.html", "rb")
