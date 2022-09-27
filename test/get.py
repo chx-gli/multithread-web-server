@@ -1,7 +1,10 @@
-import requests,threading
+import requests
+import threading
+
 
 class RQ_get(threading.Thread):
     """docstring for RQ_get."""
+
     def __init__(self):
         super(RQ_get, self).__init__()
 
@@ -14,10 +17,13 @@ class RQ_get(threading.Thread):
             print("提前关闭了链接，因为要释放")
         # print(rq.content.decode("utf8"))
 
+
 class RQ_head(threading.Thread):
     """docstring for RQ_head."""
+
     def __init__(self, ):
         super(RQ_head, self).__init__()
+
     def run(self):
         try:
             rq = requests.head("http://192.168.91.1:9000/index.html")
@@ -30,10 +36,10 @@ class RQ_head(threading.Thread):
 class RQ_post(threading.Thread):
     """docstring for RQ_head."""
 
-    def __init__(self,a=2,b=3):
+    def __init__(self, a=2, b=3):
         super(RQ_post, self).__init__()
-        self.a=str(a)
-        self.b=str(b)
+        self.a = str(a)
+        self.b = str(b)
 
     def run(self):
         try:
@@ -43,12 +49,13 @@ class RQ_post(threading.Thread):
             print(rq.content.decode("utf8"))
         except:
             print("提前关闭了链接，因为要释放")
-        
-l=[]
+
+
+l = []
 for r in range(1):
-#    l.append(RQ_post(3,4)) 
-#    l.append(RQ_get()) 
-   l.append(RQ_head()) 
+    #    l.append(RQ_post(3,4))
+    #    l.append(RQ_get())
+    l.append(RQ_head())
 
 for r in l:
     r.start()
