@@ -1,3 +1,4 @@
+from fileinput import filename
 import socket
 import threading
 import subprocess
@@ -81,18 +82,16 @@ class Worker(threading.Thread):
         if self.stopped:
             return
         if os.path.isfile(file_name):
-            file_suffix = file_name.split('.')
-            file_suffix = file_suffix[-1].encode()
+            file_suffix = file_name.split('.')[-1].encode()
             content = b"HTTP/1.1 200 OK\r\nContent-Type: text/" + \
-                      file_suffix + b";charset=utf-8\r\n"
+                      file_suffix + b";charset=utf-8\r\n\r\n"
 
             self.status_code = 200
         else:
-            content = b"HTTP/1.1 404 Not Found\r\nContent-Type: text/html;charset=utf-8\r\n"
             file_name = "404.html"
+            content = b"HTTP/1.1 404 Not Found\r\nContent-Type: text/html;charset=utf-8\r\n\r\n"
 
             self.status_code = 404
-        content += b'\r\n'
 
         if self.stopped:
             return
@@ -127,18 +126,21 @@ class Worker(threading.Thread):
         file_size = 0
 
         if self.proc.poll() == 2:  # 2子进程不存在
-            content = b"HTTP/1.1 403 Forbidden\r\nContent-Type: text/html;charset=utf-8\r\n"
-            page = b''
+            content = b"HTTP/1.1 403 Forbidden\r\nContent-Type: text/html;charset=utf-8\r\n\r\n"
             self.file_handle = open("403.html", "rb")
             for line in self.file_handle:
-                page += line
-            content += b'\r\n'
-            content += page
+                content += line
 
             self.status_code = 403
         else:
-            content = b"HTTP/1.1 200 OK\r\nContent-Type: text/html;charset=utf-8\r\n"
-            content += self.proc.stdout.read()
+            content = b"HTTP/1.1 200 OK\r\nContent-Type: text/html;charset=utf-8\r\n\r\n"
+
+            # content += self.proc.stdout.read()
+            name, _ = os.path.splitext(file_name)
+            file_name = name + '.html'
+            self.file_handle = open(file_name, "rb")
+            for line in self.file_handle:
+                content += line
 
             file_size = os.path.getsize(file_name)
             self.status_code = 200

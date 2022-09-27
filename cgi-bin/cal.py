@@ -29,4 +29,5 @@ res = f'''
 </body>
 </html>
 '''
-print(res)
+with open('cgi-bin/cal.html', 'w') as f:
+    print(res, file=f)
