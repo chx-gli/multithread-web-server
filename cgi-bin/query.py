@@ -65,7 +65,7 @@ res = f'''
                 <a class="nav-link" href="/query.html">Database Query</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/about.html">About</a>
+                <a class="nav-link" href="/Team.html">Team</a>
             </li>
         </ul>
     </div>
