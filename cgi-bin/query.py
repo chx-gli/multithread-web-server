@@ -13,19 +13,16 @@ student_gender = ini[1].split("=")[1]
 student_class = ini[2].split("=")[1]
 
 
-db = sqlite3.connect('data\Student_data.db')
+db = sqlite3.connect('data/Student_data.db')
 cursor = db.cursor()
 
-sql = "SELECT * from student where 1=1 "
+sql = "select * from student where 1=1 "
 if student_id != "":
-
-    sql += "and id = " + "\"" + student_id + "\" " 
-
+    sql += f"and id = \"{student_id}\" "
 if student_gender != "":
-    sql += "and gender = " + "\"" + student_gender + "\" " 
-
+    sql += f"and gender = \"{student_gender}\" "
 if student_class != "":
-    sql += "and class = " + "\"" + student_class + "\" "  
+    sql += f"and class = \"{student_gender}\""
 
 sql += ";"
 cursor.execute(sql)
@@ -34,14 +31,14 @@ data = cursor.fetchall()
 
 student_data = ''
 for student in data:
-    temp = "<tr >"
-    temp += "<th scope=\"row\">" + str(student[0]) + "</th>"
-    temp += "<td>" + student[1] + "</td>"
-    temp += "<td>" + student[3] + "</td>"
-    temp += "<td>" + student[2] + "</td>"
-    temp += "</tr>\n"
-    student_data += temp
-res = f'''<!DOCTYPE html>
+    student_data += f'<tr>' \
+                    f'    <th scope="row">{student[0]}</th>' \
+                    f'    <td>{student[1]}</td>' \
+                    f'    <td>{student[2]}</td>' \
+                    f'    <td>{student[3]}</td>' \
+                    f'</tr>\n'
+res = f'''
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -69,3 +66,5 @@ res = f'''<!DOCTYPE html>
   <script src="../js/bootstrap.bundle.min.js"></script>
 </html>'''
 print(res)
+
+cursor.close()
