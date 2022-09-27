@@ -47,7 +47,7 @@ class Worker(threading.Thread):
         self.log_name = _log_name
         self.mux = mux  # 对working_thread互斥访问
         self.working_thread = working_thread  # 所属活跃进程列表
-        self.msg = None
+        self.msg = bytes()
         self.status_code = -1
 
         self.file_handle = None
@@ -109,11 +109,13 @@ class Worker(threading.Thread):
 
         self.write_log(file_size)
 
-    def post(self, file_name, args):
+    def post(self, file_name):
         if self.stopped:
             return
-        command = 'python ' + file_name + ' "' + args + '" "' + self.socket.getsockname(
-        )[0] + '" "' + str(self.socket.getsockname()[1]) + '"'
+        command = 'python ' + file_name + ' "' + self.msg[-1] + '" "'\
+            + self.socket.getsockname()[0] + '" "' + \
+            str(self.socket.getsockname()[1]) + '"'
+
         print(command)
         if self.stopped:
             return
@@ -184,15 +186,21 @@ class Worker(threading.Thread):
             if self.stopped:
                 break
 
-            message = self.socket.recv(8000).decode("utf-8")
-            message = message.splitlines()
+            self.msg = bytes()
+            while True:
+                message = self.socket.recv(1460)  # mss 1460
+                self.msg += message
+                if len(message) < 1460:
+                    break
 
-            self.msg = message
+            self.msg = self.msg.decode("utf-8").splitlines()
+            # print(self.msg)
 
             if self.stopped:
                 break
             elif self.msg:
                 key_mes = self.msg[0].split()
+                # [0] get/post medthod [1]req doc [2]http version
             else:
                 print("error when reading message:msg empty")
                 continue
@@ -214,7 +222,7 @@ class Worker(threading.Thread):
                     case 'GET':
                         self.get(file_name)
                     case 'POST':
-                        self.post(file_name, message[-1])
+                        self.post(file_name)
                     case 'HEAD':
                         self.get(file_name, True)
                     case _:
