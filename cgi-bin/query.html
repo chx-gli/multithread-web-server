@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>Student Data</title>
-</head>
-<body>
-
-    <table border="1">
-        <caption>Student Data</caption>
-        <tr>
-            <th> ID </th>
-            <th> NAME </th>
-            <th> CLASS </th>
-        </tr>
-        $data
-    </table>
-
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <title>Student Data Query Result</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../css/query.css" />
+  </head>
+  <body>
+    <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">学号</th>
+            <th scope="col">姓名</th>
+            <th scope="col">性别</th>
+            <th scope="col">班级</th>
+          </tr>
+        </thead>
+        <tbody>
+            $data
+        </tbody>
+      </table>
+  </body>
 </html>
