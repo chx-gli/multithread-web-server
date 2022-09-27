@@ -185,9 +185,12 @@ class Worker(threading.Thread):
 
             self.msg = bytes()
             while True:
-                message = self.socket.recv(1460)  # mss 1460
+                message = self.socket.recv(4096)  # a power of 2
+                # # nonblocking mode: timeout before recv or no available msg
+                # if message == -1:
+                #    break
                 self.msg += message
-                if len(message) < 1460:
+                if len(message) < 4096:
                     break
 
             self.msg = self.msg.decode("utf-8").splitlines()
