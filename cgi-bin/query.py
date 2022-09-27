@@ -42,7 +42,7 @@ res = f'''
 <html>
 <head>
     <meta charset="UTF-8"/>
-    <title>Student Data Query Result</title>
+    <title>Database Query Result</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="/css/query.css"/>
 </head>
