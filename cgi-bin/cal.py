@@ -12,26 +12,29 @@ res = f'''
 <html>
 <head>
     <title>Calculation Result</title>
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/pad.css">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/pad.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-light">
   <div class="container-fluid">
-    <a href="index.html" class="navbar-brand">Python-based Multi-threaded Server</a>
+    <a href="/index.html" class="navbar-brand">
+        <img src="/img/head.png" alt="BITLogo" style="width: 5rem">
+        Python-based Multi-threaded Server
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto">
             <li class="nav-item">
-                <a class="nav-link" href="cal.html">Calculator</a>
+                <a class="nav-link" href="/cal.html">Calculator</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="query.html">Database Query</a>
+                <a class="nav-link" href="/query.html">Database Query</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="about.html">About</a>
+                <a class="nav-link" href="/Team.html">Team</a>
             </li>
         </ul>
     </div>
@@ -47,7 +50,7 @@ res = f'''
     </div>
 </div>
 </div>
-<script src="../js/bootstrap.bundle.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 '''

@@ -42,32 +42,34 @@ res = f'''
 <html>
 <head>
     <meta charset="UTF-8"/>
-    <title>Student Data Query Result</title>
-    <link rel="stylesheet" href="../css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="../css/query.css"/>
+    <title>Database Query Result</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/query.css"/>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-light">
-    <div class="container-fluid">
-        <a href="index.html" class="navbar-brand">Python-based Multi-threaded Server</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="cal.html">Calculator</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="query.html">Database Query</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="about.html">About</a>
-                </li>
-            </ul>
-        </div>
+  <div class="container-fluid">
+    <a href="/index.html" class="navbar-brand">
+        <img src="/img/head.png" alt="BITLogo" style="width: 5rem">
+        Python-based Multi-threaded Server
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/cal.html">Calculator</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/query.html">Database Query</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/Team.html">Team</a>
+            </li>
+        </ul>
     </div>
+  </div>
 </nav>
 
 <div class="container">
@@ -86,7 +88,7 @@ res = f'''
     </table>
 </div>
 </body>
-<script src="../js/bootstrap.bundle.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
 </html>
 '''
 print(res)
