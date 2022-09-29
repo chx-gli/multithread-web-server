@@ -1,4 +1,3 @@
-from fileinput import filename
 import socket
 import threading
 import subprocess
@@ -11,10 +10,8 @@ mux = threading.Semaphore(1)  # 对working_thread互斥访问
 working_thread = []  # 活跃进程列表
 
 
-class ThreadPool(threading.Thread):
+class ThreadPool:
     def __init__(self, _log_name, max_connection):
-        super().__init__()
-        self.daemon = True
         self.log_name = _log_name
         self.max_connection = max_connection
         self.mux = threading.Semaphore(1)  # 对working_thread互斥访问
@@ -28,7 +25,7 @@ class ThreadPool(threading.Thread):
         if working_thread_cnt == self.max_connection:
             thread = self.working_thread.pop(0)  # 释放最早的
             thread.end()
-            thread.start()
+            # thread.start()
 
         print("now working thread: " + str(working_thread_cnt) +
               " ; free thread: " +
@@ -38,17 +35,18 @@ class ThreadPool(threading.Thread):
         self.mux.release()
 
     def run(self):
-        for i in range(self.max_connection):
+        # print(self.max_connection)
+        for _ in range(self.max_connection):
             Worker(self.log_name, self.mux, self.working_thread).start()
 
 
 class Worker(threading.Thread):
-    def __init__(self, _log_name, mux, working_thread):
+    def __init__(self, _log_name, _mux, _working_thread):
         super().__init__()
 
         self.log_name = _log_name
-        self.mux = mux  # 对working_thread互斥访问
-        self.working_thread = working_thread  # 所属活跃进程列表
+        self.mux = _mux  # 对working_thread互斥访问
+        self.working_thread = _working_thread  # 所属活跃进程列表
         self.msg = bytes()
         self.status_code = -1
 
@@ -59,10 +57,10 @@ class Worker(threading.Thread):
         self.stopped = 0  # 控制线程停止，执行时定期检查stop，为1则退出
         self.daemon = True
 
-    def end(self):  # stop置1并释放资源，强行终止
+    def end(self):  # stop置1，强行终止(重启)
         self.stopped = 1
-        self.join()
-        self.release()
+        # self.join()
+        # self.release()
 
     def release(self):  # 释放资源
         if self.file_handle is not None:
@@ -112,13 +110,15 @@ class Worker(threading.Thread):
     def post(self, file_name):
         if self.stopped:
             return
-        command = 'python ' + file_name + ' "' + self.msg[-1] + '"'
+        # command = 'python ' + file_name + ' "' + self.msg[-1] + '"'
+        command = f'python {file_name} "{self.msg[-1]}"'
         print(command)
         if self.stopped:
             return
-        self.proc = subprocess.Popen(command,
-                                     shell=True,
-                                     stdout=subprocess.PIPE)
+        self.proc = subprocess.Popen(
+            command,
+            shell=True,
+            stdout=subprocess.PIPE)
         self.proc.wait()
 
         if self.stopped:
@@ -177,8 +177,8 @@ class Worker(threading.Thread):
             f.write(content)
 
     def run(self):
-        self.stopped = 0
         while True:
+            self.stopped = 0
             full.acquire()  # 等待连接
 
             tasks_mux.acquire()
@@ -190,7 +190,8 @@ class Worker(threading.Thread):
             self.mux.release()
 
             if self.stopped:
-                break
+                self.release()
+                continue
 
             self.msg = bytes()
             while True:
@@ -206,7 +207,8 @@ class Worker(threading.Thread):
             # print(self.msg)
 
             if self.stopped:
-                break
+                self.release()
+                continue
             elif self.msg:
                 key_mes = self.msg[0].split()
                 # [0] get/post medthod [1]req doc [2]http version
@@ -219,13 +221,15 @@ class Worker(threading.Thread):
                 continue
 
             if self.stopped:
-                break
+                self.release()
+                continue
             file_name = "index.html"
             if key_mes[1] != "/":
                 file_name = key_mes[1][1:]
 
             if self.stopped:
-                break
+                self.release()
+                continue
             try:
                 match key_mes[0]:
                     case 'GET':
@@ -240,8 +244,8 @@ class Worker(threading.Thread):
             except Exception as e:
                 print("reason:", e)
 
-            if self.stopped:
-                break
+            if self.stopped:  # 其它线程停止的，已经被移除出工作线程队列
+                self.release()
             else:  # 继续等待连接
                 self.release()
                 self.mux.acquire()

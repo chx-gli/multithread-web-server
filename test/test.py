@@ -1,26 +1,29 @@
-from ast import arg
+import requests
+from concurrent.futures import ThreadPoolExecutor
 
 
-ini = "id=1120198912&gender=female&class=07111905"
-args = ini.split('&')
-print(args)
-student_id = args[0].split('=')[1]
-student_gender = args[1].split('=')[1]
-student_class = args[2].split('=')[1]
+def head_test() -> int:
+    try:
+        r = requests.head('http://127.0.0.1:9000', timeout=1)
+        r.raise_for_status()
+        return r.status_code
+    except Exception as e:
+        print(e)
+        return -1
 
 
+MAX_CONN = 256
+with ThreadPoolExecutor(max_workers=MAX_CONN) as tp:
+    tasks = []
+    task_append = tasks.append
+    for i in range(MAX_CONN):
+        task_append(tp.submit(head_test))
 
-sql = "SELECT * from student where 1=1 "
-if student_id != "":
-
-    sql += "and id = " + "\"" + student_id + "\" " 
-
-if student_gender != "":
-    sql += "and gender = " + "\"" + student_gender + "\" " 
-
-if student_class != "":
-    sql += "and class = " + "\"" + student_class + "\" "  
-
-sql += ";"
-
-print(sql)
+    success, failure = 0, 0
+    for each in tasks:
+        match each.result():
+            case 200:
+                success += 1
+            case _:
+                failure += 1
+    print(f'Success: {success}, failure: {failure}, success rate = {100 * success / (success + failure):.2f}%')

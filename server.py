@@ -38,12 +38,12 @@ log_name = f'log/' \
            f'{cur_time.tm_hour}.{cur_time.tm_min}.{cur_time.tm_sec}.txt'
 
 tp = ThreadPool(log_name, MAX_CONNECTION)
-tp.start()
+tp.run()
 
 # 监听循环
 while True:
     try:
-        clientSocket, addr = listening_socket.accept()  # cleint是阻塞模式
+        clientSocket, addr = listening_socket.accept()  # client是阻塞模式
         print(f'Receive request from {clientSocket.getpeername()}.')
 
         # produce
