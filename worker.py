@@ -1,4 +1,3 @@
-from fileinput import filename
 import socket
 import threading
 import subprocess
@@ -25,9 +24,11 @@ class ThreadPool(threading.Thread):
         working_thread_cnt = len(self.working_thread)
 
         if working_thread_cnt == self.max_connection:
+            self.mux.acquire()
             thread = self.working_thread.pop(0)  # 释放最早的
+            self.mux.release()
             thread.end()
-            thread.start()
+            # thread.start()
 
         print("now working thread: " + str(working_thread_cnt) +
               " ; free thread: " +
@@ -37,7 +38,8 @@ class ThreadPool(threading.Thread):
         self.mux.release()
 
     def run(self):
-        for i in range(self.max_connection):
+        # print(self.max_connection)
+        for _ in range(self.max_connection):
             Worker(self.log_name, self.mux, self.working_thread).start()
 
 
@@ -58,10 +60,10 @@ class Worker(threading.Thread):
         self.stopped = 0  # 控制线程停止，执行时定期检查stop，为1则退出
         self.daemon = True
 
-    def end(self):  # stop置1并释放资源，强行终止
+    def end(self):  # stop置1，强行终止(重启)
         self.stopped = 1
-        self.join()
-        self.release()
+        # self.join()
+        # self.release()
 
     def release(self):  # 释放资源
         if self.file_handle is not None:
@@ -170,8 +172,8 @@ class Worker(threading.Thread):
             f.write(content)
 
     def run(self):
-        self.stopped = 0
         while True:
+            self.stopped = 0
             full.acquire()  # 等待连接
 
             tasks_mux.acquire()
@@ -183,7 +185,8 @@ class Worker(threading.Thread):
             self.mux.release()
 
             if self.stopped:
-                break
+                self.release()
+                continue
 
             self.msg = bytes()
             while True:
@@ -199,7 +202,8 @@ class Worker(threading.Thread):
             # print(self.msg)
 
             if self.stopped:
-                break
+                self.release()
+                continue
             elif self.msg:
                 key_mes = self.msg[0].split()
                 # [0] get/post medthod [1]req doc [2]http version
@@ -212,13 +216,15 @@ class Worker(threading.Thread):
                 continue
 
             if self.stopped:
-                break
+                self.release()
+                continue
             file_name = "index.html"
             if key_mes[1] != "/":
                 file_name = key_mes[1][1:]
 
             if self.stopped:
-                break
+                self.release()
+                continue
             try:
                 match key_mes[0]:
                     case 'GET':
@@ -233,8 +239,8 @@ class Worker(threading.Thread):
             except Exception as e:
                 print("reason:", e)
 
-            if self.stopped:
-                break
+            if self.stopped:  # 其它线程停止的，已经被移除出工作线程队列
+                self.release()
             else:  # 继续等待连接
                 self.release()
                 self.mux.acquire()
