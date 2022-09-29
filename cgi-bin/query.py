@@ -86,11 +86,12 @@ res = f'''
         {student_data}
         </tbody>
     </table>
-</div>
+  </div>
 </body>
-<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="../js/bootstrap.bundle.min.js"></script>
 </html>
 '''
-print(res)
+with open('cgi-bin/query.html', 'w') as f:
+    print(res, file=f)
 
 cursor.close()
