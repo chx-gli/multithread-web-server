@@ -2,6 +2,7 @@ from fileinput import filename
 import socket
 import threading
 import subprocess
+import datetime
 import os
 import time
 from semas import full, tasks_mux, tasks
@@ -154,18 +155,24 @@ class Worker(threading.Thread):
 
     # 日志书写（文件大小）
     def write_log(self, file_size):
-        content = self.msg[1].split(":")[1].replace(" ", "")
-        content += f'--[' \
-                   f'{time.localtime().tm_year}-{time.localtime().tm_mon}-{time.localtime().tm_mday}_' \
-                   f'{time.localtime().tm_hour}.{time.localtime().tm_min}.{time.localtime().tm_sec}' \
-                   f']'
-        content += f' {self.msg[0].split("/")[0].replace(" ", "")} {self.msg[0].split(" ")[1].replace(" ", "")} '
-        content += f'{file_size} {self.status_code} '
+        print(self.msg)
+        content = self.msg[1].split(": ")[1].replace(" ", "")
+        content += f'--[{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} UTC+8]'
+        content += f' "{self.msg[0].split("/")[0].replace(" ", "")} {self.msg[0].split(" ")[1].replace(" ", "")}" '
+        content += f'{self.status_code} {file_size} '
+        Flag = False
+        refer_content = ""
         for each in self.msg:
             if each.split(" ")[0] == "Referer:":
-                content = content + each.split(" ")[1].replace(" ", "")
-
-        content += "\n"
+                Flag = True
+                refer_content += each.split(" ")[1].replace(" ", "")
+        if Flag:
+            content += f" \"{refer_content}\" "
+        content += "\""
+        for each in self.msg:
+            if each.split(" ")[0] == "User-Agent:":
+                content = content + each.split("User-Agent: ")[1]
+        content += "\"\n"
         with open(self.log_name, "a") as f:
             f.write(content)
 
