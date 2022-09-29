@@ -12,11 +12,18 @@ def head_test() -> int:
         return -1
 
 
-with ThreadPoolExecutor(max_workers=64) as tp:
+MAX_CONN = 256
+with ThreadPoolExecutor(max_workers=MAX_CONN) as tp:
     tasks = []
     task_append = tasks.append
-    for i in range(64):
+    for i in range(MAX_CONN):
         task_append(tp.submit(head_test))
 
+    success, failure = 0, 0
     for each in tasks:
-        print(each.result())
+        match each.result():
+            case 200:
+                success += 1
+            case _:
+                failure += 1
+    print(f'Success: {success}, failure: {failure}, success rate = {100 * success / (success + failure):.2f}%')

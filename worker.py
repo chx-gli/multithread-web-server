@@ -9,10 +9,8 @@ mux = threading.Semaphore(1)  # 对working_thread互斥访问
 working_thread = []  # 活跃进程列表
 
 
-class ThreadPool(threading.Thread):
+class ThreadPool:
     def __init__(self, _log_name, max_connection):
-        super().__init__()
-        self.daemon = True
         self.log_name = _log_name
         self.max_connection = max_connection
         self.mux = threading.Semaphore(1)  # 对working_thread互斥访问
@@ -24,9 +22,7 @@ class ThreadPool(threading.Thread):
         working_thread_cnt = len(self.working_thread)
 
         if working_thread_cnt == self.max_connection:
-            self.mux.acquire()
             thread = self.working_thread.pop(0)  # 释放最早的
-            self.mux.release()
             thread.end()
             # thread.start()
 
@@ -44,12 +40,12 @@ class ThreadPool(threading.Thread):
 
 
 class Worker(threading.Thread):
-    def __init__(self, _log_name, mux, working_thread):
+    def __init__(self, _log_name, _mux, _working_thread):
         super().__init__()
 
         self.log_name = _log_name
-        self.mux = mux  # 对working_thread互斥访问
-        self.working_thread = working_thread  # 所属活跃进程列表
+        self.mux = _mux  # 对working_thread互斥访问
+        self.working_thread = _working_thread  # 所属活跃进程列表
         self.msg = bytes()
         self.status_code = -1
 
@@ -113,13 +109,15 @@ class Worker(threading.Thread):
     def post(self, file_name):
         if self.stopped:
             return
-        command = 'python ' + file_name + ' "' + self.msg[-1] + '"'
+        # command = 'python ' + file_name + ' "' + self.msg[-1] + '"'
+        command = f'python {file_name} "{self.msg[-1]}"'
         print(command)
         if self.stopped:
             return
-        self.proc = subprocess.Popen(command,
-                                     shell=True,
-                                     stdout=subprocess.PIPE)
+        self.proc = subprocess.Popen(
+            command,
+            shell=True,
+            stdout=subprocess.PIPE)
         self.proc.wait()
 
         if self.stopped:
